@@ -1,0 +1,86 @@
+#!/bin/sh
+
+TRUSTFILE="/usr/local/etc/trusted_networks"
+QUIET=false
+
+###############################################################################
+
+usage() {
+    echo "Usage: nmtrust [OPTION...]
+Determine if the current NetworkManager connections are trusted.
+
+Options:
+    -f      specify an alternative location for the trusted network file
+    -q      be quiet"
+}
+
+file_check() {
+    if [ ! -f "$TRUSTFILE" ]; then
+        if [ "$quiet" != true ]; then
+            echo "Could not locate trusted network file: $TRUSTFILE"
+        fi
+        exit 1
+    fi
+}
+
+trusted() {
+    if [ "$quiet" != true ]; then
+        echo "All connections are trusted"
+    fi
+    exit 0
+}
+
+untrusted() {
+    if [ "$quiet" != true ]; then
+        echo "One or more connections are untrusted"
+    fi
+    exit 3
+}
+
+nonetwork() {
+    if [ "$quiet" != true ]; then
+        echo "There are no active connections"
+    fi
+    exit 4
+}
+
+while getopts ":f:qh" opt; do
+    case $opt in
+        f)
+            TRUSTFILE=$OPTARG
+            ;;
+        q)
+            quiet=true
+            ;;
+        h)
+            usage
+            exit
+            ;;
+        :)
+            echo "Option -$OPTARG requires an argument."
+            usage
+            exit 1
+            ;;
+    esac
+done
+
+# Check if the trusted network file exists.
+file_check
+
+# Get all active connections.
+connections=($(nmcli --terse -f uuid conn show --active))
+
+# Determine if there are active connections.
+if [ ${#connections[@]} -eq 0 ]; then
+    nonetwork
+# Check if any of the active connections are untrusted.
+else
+    for uuid in "${connections[@]}"; do
+        grep -q \^"$uuid"\$ "$TRUSTFILE"
+        if [ "$?" -ne 0 ]; then
+            untrusted
+        fi
+    done
+fi
+# If we're still here, all connections are trusted.
+trusted

@@ -1,0 +1,15 @@
+#!/bin/sh
+# Toggle trusted units whenever a connection is activated or deactived.
+
+action="$2"
+
+case $action in
+    up)
+        ttrust
+        ;;
+    down)
+        ttrust
+        ;;
+esac
+
+exit $?

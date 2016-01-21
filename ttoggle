@@ -1,0 +1,98 @@
+#!/bin/sh
+
+UNITFILE="/usr/local/etc/trusted_units"
+QUIET=false
+
+###############################################################################
+
+usage() {
+    echo "Usage: ttrust [OPTION...]
+Toggle the activation of certain systemd units based on the trust of the current network connections.
+
+Options:
+    -f      specify an alternative location for the trusted unit file
+    -s      display the status of the trusted units and exit
+    -q      be quiet"
+}
+
+file_check() {
+    if [ ! -f "$UNITFILE" ]; then
+        if [ "$quiet" != true ]; then
+            echo "Could not locate trusted unit file: $UNITFILE"
+        fi
+        exit 1
+    fi
+}
+
+find_nmtrust() {
+    hash nmtrust 2> /dev/null
+    if [ $? -eq 0 ]; then
+        NMTRUST=nmtrust
+    else
+        echo "Could not find nmtrust"
+        exit 127
+    fi
+}
+
+start() {
+    if [ "$quiet" != true ]; then
+        echo "Starting trusted units"
+    fi
+    systemctl start $(cat "$UNITFILE")
+    exit $?
+}
+
+stop() {
+    if [ "$quiet" != true ]; then
+        echo "Stopping trusted units"
+    fi
+    systemctl stop $(cat "$UNITFILE")
+    exit $?
+}
+
+status() {
+    systemctl status $(cat $UNITFILE) | grep '^\s*Active\|●'
+    exit $?
+}
+
+while getopts ":f:sqh" opt; do
+    case $opt in
+        f)
+            UNITFILE=$OPTARG
+            ;;
+        q)
+            quiet=true
+            ;;
+        s)
+            status=true
+            ;;
+        h)
+            usage
+            exit
+            ;;
+        :)
+            echo "Option -$OPTARG requires an argument."
+            usage
+            exit 1
+            ;;
+    esac
+done
+
+# Check if the trusted unit file exists.
+file_check
+
+# If the status was requested, display it.
+if [ "$status" = true ]; then
+    status
+fi
+
+# Execute nmtrust.
+find_nmtrust
+$NMTRUST
+
+# Toggle the units as appropriate.
+if [ $? -eq 0 ]; then
+    start
+else
+    stop
+fi
