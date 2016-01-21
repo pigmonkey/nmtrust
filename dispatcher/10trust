@@ -5,10 +5,10 @@ action="$2"
 
 case $action in
     up)
-        ttrust
+        ttoggle
         ;;
     down)
-        ttrust
+        ttoggle
         ;;
 esac
 
