@@ -36,7 +36,7 @@ connections, `nmtrust` will report this.
 A unique exit code is returned for each of the three possible states.
 
 Exit Code | State
----------   -----
+--------- | -----
 0         | All connections are trusted
 3         | One or more connections are untrusted
 4         | There are no active connections
