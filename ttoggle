@@ -38,21 +38,26 @@ start() {
     if [ "$quiet" != true ]; then
         echo "Starting trusted units"
     fi
-    systemctl start $(cat "$UNITFILE")
-    exit $?
+    systemctl start $(cat "$UNITFILE" | cut -d ',' -f1)
 }
 
 stop() {
     if [ "$quiet" != true ]; then
         echo "Stopping trusted units"
     fi
-    systemctl stop $(cat "$UNITFILE")
-    exit $?
+    systemctl stop $(cat "$UNITFILE" | cut -d ',' -f1)
+}
+
+start_offline() {
+    stop
+    if [ "$quiet" != true ]; then
+        echo "Starting trusted offline units"
+    fi
+    systemctl start $(grep ',.*allow_offline' "$UNITFILE" | cut -d ',' -f1)
 }
 
 status() {
-    systemctl status $(cat $UNITFILE) | grep '^\s*Active\|●'
-    exit $?
+    systemctl status $(cat $UNITFILE | cut -d ',' -f1) | grep '^\s*Active\|●'
 }
 
 while getopts ":f:sqh" opt; do
@@ -84,15 +89,22 @@ file_check
 # If the status was requested, display it.
 if [ "$status" = true ]; then
     status
+    exit $?
 fi
 
 # Execute nmtrust.
 find_nmtrust
 $NMTRUST
+result=$?
 
 # Toggle the units as appropriate.
-if [ $? -eq 0 ]; then
+if [ $result -eq 0 ]; then
     start
+    exit $?
+elif [ $result -eq 4 ]; then
+    start_offline
+    exit $?
 else
     stop
+    exit $?
 fi

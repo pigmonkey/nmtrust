@@ -74,8 +74,9 @@ location may be provided using the `-f` option.
 When `ttoggle` is executed, it calls `nmtrust` to determine the state of the
 network connections. If `nmtrust` reports that all the current connections are
 trusted, `ttoggle` will start all the units listed in the trusted unit file. If
-`nmtrust` returns any other response, `ttoggle` will stop all the units listed
-in the trusted unit file.
+`nmtrust` reports that there is a connection to an untrusted network or that
+the system is offline, `ttoggle` will stop all the units listed in the trusted
+unit file.
 
 ### Usage
 
@@ -85,7 +86,7 @@ periodically send and receive mail, and a service that provides an IRC instant
 messaging gateway. These may both potentially leak personal information over
 the network, so they should not be started on untrusted connections.
 
-    $ echo 'mailsync.timer\nircgateway.service' > /usr/local/etc/trusted_units
+    # echo 'mailsync.timer\nircgateway.service' > /usr/local/etc/trusted_units
 
 Now when `ttoggle` is called it will start or stop these trusted units as
 appropriate.
@@ -94,6 +95,26 @@ The `-s` option may also be used to see an abbreviated status of all the
 trusted units.
 
     $ ttoggle -s
+
+
+### Allow Offline
+
+There may be some units that should be run on trusted networks *and* when there
+is no network connection, but not when connected to an untrusted network. For
+example, the [git-annex assistant](https://git-annex.branchable.com/assistant/)
+provides useful functionality both online and offline, but may leak personal
+information (such as the location of networked remotes) on untrusted networks.
+These units can be allowed to run offline by adding `,allow_offline` to the
+unit entry in the trusted unit file.
+
+    # echo 'git-annex@user.service,allow_offline' >> /usr/local/etc/trusted_units'
+
+When `ttoggle` is called it will now perform the following:
+
+* Start all units when connected to trusted networks.
+* Stop all units when connected to untrusted networks.
+* Stop all units when connected to no network, and then start units that are
+  marked `allow_offline`.
 
 ### Automation
 
