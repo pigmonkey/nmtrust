@@ -12,6 +12,7 @@ Toggle the activation of certain systemd units based on the trust of the current
 Options:
     -f      specify an alternative location for the trusted unit file
     -s      display the status of the trusted units and exit
+    -x      stop all trusted units, regardless of network trust
     -q      be quiet"
 }
 
@@ -60,7 +61,7 @@ status() {
     systemctl status $(cat $UNITFILE | cut -d ',' -f1) | grep '^\s*Active\|●'
 }
 
-while getopts ":f:sqh" opt; do
+while getopts ":f:sxqh" opt; do
     case $opt in
         f)
             UNITFILE=$OPTARG
@@ -70,6 +71,9 @@ while getopts ":f:sqh" opt; do
             ;;
         s)
             status=true
+            ;;
+        x)
+            stopall=true
             ;;
         h)
             usage
@@ -89,6 +93,12 @@ file_check
 # If the status was requested, display it.
 if [ "$status" = true ]; then
     status
+    exit $?
+fi
+
+# If stopping everything was requested, do it.
+if [ "$stopall" = true ]; then
+    stop
     exit $?
 fi
 

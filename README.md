@@ -91,10 +91,21 @@ the network, so they should not be started on untrusted connections.
 Now when `ttoggle` is called it will start or stop these trusted units as
 appropriate.
 
-The `-s` option may also be used to see an abbreviated status of all the
-trusted units.
+
+#### Status
+
+The `-s` option may be used to see an abbreviated status of all the trusted
+units.
 
     $ ttoggle -s
+
+
+#### Stop Everything
+
+The `-x` option may be used to stop all of the trusted units, regardless of the
+network trust.
+
+    $ ttoggle -x
 
 
 ### Allow Offline
