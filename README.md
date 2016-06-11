@@ -9,6 +9,7 @@ there is no established network connection.
 ## Requirements
 
 * [NetworkManager](https://wiki.gnome.org/Projects/NetworkManager)
+* [sudo](https://www.sudo.ws/)
 
 ## Defining Trust
 
@@ -126,6 +127,21 @@ When `ttoggle` is called it will now perform the following:
 * Stop all units when connected to untrusted networks.
 * Stop all units when connected to no network, and then start units that are
   marked `allow_offline`.
+
+
+### User Units
+
+User units may be specified by adding `,user:username` to the unit entry in the
+trusted unit file. For example, if the user `pigmonkey` has a unit
+`ssh-tunnel.service` that should only be started on trusted networks:
+
+    # echo 'ssh-tunnel.service,user:pigmonkey' >> /usr/local/etc/trusted_units
+
+When starting, stopping, or checking the status of these units `ttoggle` will
+check if the calling user is the same as the user specified for the unit. If
+the users match, the current user will be used to take the appropriate action.
+If the users do not match (for instance, when `ttoggle` is called by root),
+`sudo` will be used to take action as the specified user.
 
 ### Automation
 

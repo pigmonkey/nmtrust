@@ -35,30 +35,71 @@ find_nmtrust() {
     fi
 }
 
+extract_user() {
+    echo "$1" | sed 's/.*user:\([^,]*\).*/\1/'
+}
+
+user_toggle() {
+    unit_user=$(extract_user $line)
+    unit_user_id=$(id -u $unit_user)
+    unit=$(echo "$line" | cut -d ',' -f1)
+    if [ "$1" = "status" ]; then
+        command="systemctl "$1" --user $unit | grep '^\s*Active\|●'"
+    else
+        command="systemctl "$1" --user $unit"
+    fi
+    if [ $unit_user = $USER ]; then
+        eval $command
+    else
+        sudo -u "$unit_user" bash -c "export XDG_RUNTIME_DIR=/run/user/1000; $command"
+    fi
+}
+
 start() {
     if [ "$quiet" != true ]; then
-        echo "Starting trusted units"
+        echo "Starting trusted system units"
     fi
-    systemctl start $(cat "$UNITFILE" | cut -d ',' -f1)
+    systemctl start $(grep -v ',.*user:' "$UNITFILE" | cut -d ',' -f1)
+    if [ "$quiet" != true ]; then
+        echo "Starting trusted user units"
+    fi
+    grep ',.*user:' "$UNITFILE" | while read -r line; do
+        user_toggle "start" $line
+    done
 }
 
 stop() {
     if [ "$quiet" != true ]; then
-        echo "Stopping trusted units"
+        echo "Stopping trusted system units"
     fi
-    systemctl stop $(cat "$UNITFILE" | cut -d ',' -f1)
+    systemctl stop $(grep -v ',.*user:' "$UNITFILE" | cut -d ',' -f1)
+    if [ "$quiet" != true ]; then
+        echo "Stopping trusted user units"
+    fi
+    grep ',.*user:' "$UNITFILE" | while read -r line; do
+        user_toggle "stop" $line
+    done
 }
 
 start_offline() {
     stop
     if [ "$quiet" != true ]; then
-        echo "Starting trusted offline units"
+        echo "Starting trusted system offline units"
     fi
-    systemctl start $(grep ',.*allow_offline' "$UNITFILE" | cut -d ',' -f1)
+    systemctl start $(grep ',.*allow_offline' "$UNITFILE" | grep -v ',.*user:' | cut -d ',' -f1)
+    if [ "$quiet" != true ]; then
+        echo "Starting trusted user offline units"
+    fi
+    grep ',.*allow_offline' "$UNITFILE" | grep ',.*user:' | while read -r line; do
+        user_toggle "start" $line
+    done
 }
 
 status() {
-    systemctl status $(cat $UNITFILE | cut -d ',' -f1) | grep '^\s*Active\|●'
+    systemctl status $(grep -v ',.*user:' $UNITFILE | cut -d ',' -f1) | grep '^\s*Active\|●'
+    grep ',.*user:' "$UNITFILE" | while read -r line; do
+        user_toggle "status" $line
+    done
 }
 
 while getopts ":f:sxqh" opt; do
