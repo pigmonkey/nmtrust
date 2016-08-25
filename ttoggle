@@ -13,6 +13,7 @@ Options:
     -f      specify an alternative location for the trusted unit file
     -s      display the status of the trusted units and exit
     -x      stop all trusted units, regardless of network trust
+    -t      start all trusted units, regardless of network trust
     -q      be quiet"
 }
 
@@ -102,7 +103,7 @@ status() {
     done
 }
 
-while getopts ":f:sxqh" opt; do
+while getopts ":f:sxtqh" opt; do
     case $opt in
         f)
             UNITFILE=$OPTARG
@@ -115,6 +116,9 @@ while getopts ":f:sxqh" opt; do
             ;;
         x)
             stopall=true
+            ;;
+        t)
+            startall=true
             ;;
         h)
             usage
@@ -140,6 +144,12 @@ fi
 # If stopping everything was requested, do it.
 if [ "$stopall" = true ]; then
     stop
+    exit $?
+fi
+
+# If starting everything was requested, do it.
+if [ "$startall" = true ]; then
+    start
     exit $?
 fi
 
