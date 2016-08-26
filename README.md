@@ -109,6 +109,15 @@ network trust.
     $ ttoggle -x
 
 
+#### Start Everything
+
+The `-t` option may be used to start all of the trusted units, regardless of
+the network trust. This may be useful for temporarily trusting a network
+connection.
+
+    $ ttoggle -t
+
+
 ### Allow Offline
 
 There may be some units that should be run on trusted networks *and* when there
