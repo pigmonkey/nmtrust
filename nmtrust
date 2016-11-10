@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 TRUSTFILE="/usr/local/etc/trusted_networks"
 QUIET=false
@@ -30,9 +30,16 @@ trusted() {
     exit 0
 }
 
+alluntrusted() {
+    if [ "$quiet" != true ]; then
+        echo "All connections are untrusted"
+    fi
+    exit 2
+}
+
 untrusted() {
     if [ "$quiet" != true ]; then
-        echo "One or more connections are untrusted"
+        echo "${1-One or more} connections are untrusted"
     fi
     exit 3
 }
@@ -70,15 +77,20 @@ file_check
 # Get all active connections.
 connections=($(nmcli --terse -f uuid conn show --active))
 
+# Get number of trusted connections.
+numtrusted=$(comm -12 <(nmcli --terse -f uuid conn show --active | sort) <(sort "$TRUSTFILE") | wc -l)
+
 # Determine if there are active connections.
 if [ ${#connections[@]} -eq 0 ]; then
     nonetwork
 # Check if any of the active connections are untrusted.
+elif [[ $numtrusted -eq 0 ]]; then
+    alluntrusted
 else
     for uuid in "${connections[@]}"; do
         grep -q \^"$uuid"\$ "$TRUSTFILE"
         if [ "$?" -ne 0 ]; then
-            untrusted
+            untrusted $numtrusted
         fi
     done
 fi
