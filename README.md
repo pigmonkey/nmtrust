@@ -26,13 +26,16 @@ can be initiated with these values.
 
 `nmtrust` will ask NetworkManager for a list of all active connections. It will
 then compare the UUIDs of the active connections against the trusted network
-file. If all the current connections are matched in the trusted network file,
-`nmtrust` will report that all connections are trusted. If *none* of the
-current connections exist in the trusted network file, `nmtrust` will report
-that all connections are untrusted. If some of the current connections exist in
-the trusted network file, but some do not, `nmtrust` will report that one or
-more connections are untrusted. If there are no active network connections,
-`nmtrust` will report this.
+file.
+
+* If **all** the current connections are matched in the trusted network file,
+  `nmtrust` will report that all connections are trusted.
+* If **none** of the current connections exist in the trusted network file,
+  `nmtrust` will report that all connections are untrusted.
+* If **some** of the current connections exist in the trusted network file, but
+  some do not, `nmtrust` will report that one or more connections are
+  untrusted.
+* If there are no active network connections, `nmtrust` will report this.
 
 ### Usage
 
@@ -48,8 +51,9 @@ Exit Code | State
 This allows the user to easily script `nmtrust` to only execute certain actions
 on certain types of networks. For example, you may have a network backup script
 `netbackup.sh` that is executed every hour by cron. However, you only want the
-script to run when you are connected to a network that you trust. This is easy
-to accomplish by creating a wrapper around `netbackup.sh` for cron to call.
+script to run when you are connected solely to a network or networksthat you
+trust. This is easy to accomplish by creating a wrapper around `netbackup.sh`
+for cron to call.
 
 ```
 #!/bin/sh
