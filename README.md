@@ -27,18 +27,21 @@ can be initiated with these values.
 `nmtrust` will ask NetworkManager for a list of all active connections. It will
 then compare the UUIDs of the active connections against the trusted network
 file. If all the current connections are matched in the trusted network file,
-`nmtrust` will report that all connections are trusted. If *any* of the current
-connections do not exist in the trusted network file, `nmtrust` will report
-that one or more connections are untrusted. If there are no active network
-connections, `nmtrust` will report this.
+`nmtrust` will report that all connections are trusted. If *none* of the
+current connections exist in the trusted network file, `nmtrust` will report
+that all connections are untrusted. If some of the current connections exist in
+the trusted network file, but some do not, `nmtrust` will report that one or
+more connections are untrusted. If there are no active network connections,
+`nmtrust` will report this.
 
 ### Usage
 
-A unique exit code is returned for each of the three possible states.
+A unique exit code is returned for each of the four possible states.
 
 Exit Code | State
 --------- | -----
 0         | All connections are trusted
+2         | All connections are untrusted
 3         | One or more connections are untrusted
 4         | There are no active connections
 
