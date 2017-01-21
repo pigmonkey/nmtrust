@@ -26,8 +26,7 @@ file_check() {
 }
 
 find_nmtrust() {
-    hash nmtrust 2> /dev/null
-    if [ $? -eq 0 ]; then
+    if hash nmtrust 2> /dev/null; then
         NMTRUST=nmtrust
     else
         echo "Could not find nmtrust"
