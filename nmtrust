@@ -1,7 +1,6 @@
 #!/bin/bash
 
 TRUSTFILE="/usr/local/etc/trusted_networks"
-QUIET=false
 
 ###############################################################################
 
