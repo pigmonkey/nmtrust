@@ -1,7 +1,6 @@
 #!/bin/sh
 
 UNITFILE="/usr/local/etc/trusted_units"
-QUIET=false
 
 ###############################################################################
 
@@ -42,7 +41,6 @@ extract_user() {
 
 user_toggle() {
     unit_user=$(extract_user "$line")
-    unit_user_id=$(id -u $unit_user)
     unit=$(echo "$line" | cut -d ',' -f1)
     if [ "$1" = "status" ]; then
         command="systemctl $1 --user $unit | grep '^\s*Active\|●'"
