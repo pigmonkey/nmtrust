@@ -38,6 +38,11 @@ extract_user() {
     echo "$1" | sed 's/.*user:\([^,]*\).*/\1/'
 }
 
+get_trusted_units() {
+    TRUSTED_UNITS=$(grep -v ',.*user:' "$UNITFILE" | cut -d ',' -f1)
+    OFFLINE_UNITS=$(grep ',.*allow_offline' "$UNITFILE" | grep -v ',.*user:' | cut -d ',' -f1)
+}
+
 user_toggle() {
     unit_user=$(extract_user "$line")
     unit=$(echo "$line" | cut -d ',' -f1)
@@ -57,7 +62,7 @@ start() {
     if [ "$quiet" != true ]; then
         echo "Starting trusted system units"
     fi
-    systemctl start $(grep -v ',.*user:' "$UNITFILE" | cut -d ',' -f1)
+    systemctl start $TRUSTED_UNITS
     if [ "$quiet" != true ]; then
         echo "Starting trusted user units"
     fi
@@ -70,7 +75,7 @@ stop() {
     if [ "$quiet" != true ]; then
         echo "Stopping trusted system units"
     fi
-    systemctl stop $(grep -v ',.*user:' "$UNITFILE" | cut -d ',' -f1)
+    systemctl stop $TRUSTED_UNITS
     if [ "$quiet" != true ]; then
         echo "Stopping trusted user units"
     fi
@@ -84,7 +89,7 @@ start_offline() {
     if [ "$quiet" != true ]; then
         echo "Starting trusted system offline units"
     fi
-    systemctl start $(grep ',.*allow_offline' "$UNITFILE" | grep -v ',.*user:' | cut -d ',' -f1)
+    systemctl start $OFFLINE_UNITS
     if [ "$quiet" != true ]; then
         echo "Starting trusted user offline units"
     fi
@@ -94,7 +99,7 @@ start_offline() {
 }
 
 status() {
-    systemctl status $(grep -v ',.*user:' $UNITFILE | cut -d ',' -f1) | grep '^\s*Active\|●'
+    systemctl status $TRUSTED_UNITS | grep '^\s*Active\|●'
     grep ',.*user:' "$UNITFILE" | while read -r line; do
         user_toggle "status" "$line"
     done
@@ -131,6 +136,9 @@ done
 
 # Check if the trusted unit file exists.
 file_check
+
+# Get the trusted units
+get_trusted_units
 
 # If the status was requested, display it.
 if [ "$status" = true ]; then
