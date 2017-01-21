@@ -41,16 +41,16 @@ extract_user() {
 }
 
 user_toggle() {
-    unit_user=$(extract_user $line)
+    unit_user=$(extract_user "$line")
     unit_user_id=$(id -u $unit_user)
     unit=$(echo "$line" | cut -d ',' -f1)
     if [ "$1" = "status" ]; then
-        command="systemctl "$1" --user $unit | grep '^\s*Active\|●'"
+        command="systemctl $1 --user $unit | grep '^\s*Active\|●'"
     else
-        command="systemctl "$1" --user $unit"
+        command="systemctl $1 --user $unit"
     fi
-    if [ $unit_user = $USER ]; then
-        eval $command
+    if [ "$unit_user" = "$USER" ]; then
+        eval "$command"
     else
         sudo -u "$unit_user" bash -c "export XDG_RUNTIME_DIR=/run/user/1000; $command"
     fi
@@ -65,7 +65,7 @@ start() {
         echo "Starting trusted user units"
     fi
     grep ',.*user:' "$UNITFILE" | while read -r line; do
-        user_toggle "start" $line
+        user_toggle "start" "$line"
     done
 }
 
@@ -78,7 +78,7 @@ stop() {
         echo "Stopping trusted user units"
     fi
     grep ',.*user:' "$UNITFILE" | while read -r line; do
-        user_toggle "stop" $line
+        user_toggle "stop" "$line"
     done
 }
 
@@ -92,14 +92,14 @@ start_offline() {
         echo "Starting trusted user offline units"
     fi
     grep ',.*allow_offline' "$UNITFILE" | grep ',.*user:' | while read -r line; do
-        user_toggle "start" $line
+        user_toggle "start" "$line"
     done
 }
 
 status() {
     systemctl status $(grep -v ',.*user:' $UNITFILE | cut -d ',' -f1) | grep '^\s*Active\|●'
     grep ',.*user:' "$UNITFILE" | while read -r line; do
-        user_toggle "status" $line
+        user_toggle "status" "$line"
     done
 }
 
