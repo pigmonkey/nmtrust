@@ -87,7 +87,7 @@ elif [[ $numtrusted -eq 0 ]]; then
     alluntrusted
 else
     for uuid in "${connections[@]}"; do
-        grep -q \^"$uuid"\$ "$TRUSTFILE"
+        grep -q ^"$uuid"$ "$TRUSTFILE"
         if [ "$?" -ne 0 ]; then
             untrusted $numtrusted
         fi
