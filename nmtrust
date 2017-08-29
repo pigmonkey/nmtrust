@@ -29,7 +29,7 @@ trusted() {
     exit 0
 }
 
-alluntrusted() {
+all_untrusted() {
     if [ "$quiet" != true ]; then
         echo "All connections are untrusted"
     fi
@@ -43,7 +43,7 @@ untrusted() {
     exit 3
 }
 
-nonetwork() {
+no_network() {
     if [ "$quiet" != true ]; then
         echo "There are no active connections"
     fi
@@ -77,18 +77,19 @@ file_check
 connections=($(nmcli --terse -f uuid conn show --active))
 
 # Get number of trusted connections.
-numtrusted=$(comm -12 <(nmcli --terse -f uuid conn show --active | sort) <(sort "$TRUSTFILE") | wc -l)
+num_trusted=$(comm -12 <(nmcli --terse -f uuid conn show --active | sort) <(sort "$TRUSTFILE") | wc -l)
 
 # Determine if there are active connections.
 if [ ${#connections[@]} -eq 0 ]; then
-    nonetwork
+    no_network
 # Check if any of the active connections are untrusted.
-elif [[ $numtrusted -eq 0 ]]; then
-    alluntrusted
+elif [[ $num_trusted -eq 0 ]]; then
+    all_untrusted
 else
     for uuid in "${connections[@]}"; do
         if ! grep -q ^"$uuid"$ "$TRUSTFILE"; then
-            untrusted "$numtrusted"
+            num_untrusted=$((${#connections[@]} - $num_trusted))
+            untrusted "$num_untrusted of ${#connections[@]}"
         fi
     done
 fi
