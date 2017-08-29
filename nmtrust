@@ -88,7 +88,7 @@ elif [[ $num_trusted -eq 0 ]]; then
 else
     for uuid in "${connections[@]}"; do
         if ! grep -q ^"$uuid"$ "$TRUSTFILE"; then
-            num_untrusted=$((${#connections[@]} - $num_trusted))
+            num_untrusted=$((${#connections[@]} - num_trusted))
             untrusted "$num_untrusted of ${#connections[@]}"
         fi
     done
