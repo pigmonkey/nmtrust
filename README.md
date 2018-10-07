@@ -17,7 +17,7 @@ NetworkManager assigns a UUID to each network profile. These can be seen by
 running `nmcli conn`. The UUIDs of the trusted networks should be placed in a
 file. By default `nmtrust` will look for this file at
 `/usr/local/etc/trusted_networks`, however an alternative location may be
-provided using the `-f` option.
+provided using the `-t` option.
 
 If all of the current network connections are trusted, the trusted network file
 can be initiated with these values.
@@ -37,6 +37,19 @@ file.
   untrusted.
 * If there are no active network connections, `nmtrust` will report this.
 
+### Exclude Networks
+
+Network connections can be excluded from nmtrust as well.
+
+For example, if you have Docker installed, the Docker bridge network connection(s)
+needs to be excluded from the active network connections list. Otherwise, if you
+disconnect all other connections, `nmtrust` still thinks there are active connections
+despite that you are offline.
+
+The name of the network(s) that need to be excluded should be placed in
+`/usr/local/etc/excluded_networks`, however an alternative location may be provided
+using the `-e` option.
+
 ### Usage
 
 A unique exit code is returned for each of the four possible states.
@@ -51,7 +64,7 @@ Exit Code | State
 This allows the user to easily script `nmtrust` to only execute certain actions
 on certain types of networks. For example, you may have a network backup script
 `netbackup.sh` that is executed every hour by cron. However, you only want the
-script to run when you are connected solely to a network or networksthat you
+script to run when you are connected solely to a network or networks that you
 trust. This is easy to accomplish by creating a wrapper around `netbackup.sh`
 for cron to call.
 
