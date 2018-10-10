@@ -1,5 +1,6 @@
 #!/bin/bash
 
+EXCLUDEFILE="/usr/local/etc/excluded_networks"
 TRUSTFILE="/usr/local/etc/trusted_networks"
 
 ###############################################################################
@@ -9,14 +10,21 @@ usage() {
 Determine if the current NetworkManager connections are trusted.
 
 Options:
-    -f      specify an alternative location for the trusted network file
+    -e      specify an alternative location for the excluded networks file
+    -t      specify an alternative location for the trusted networks file
     -q      be quiet"
 }
 
 file_check() {
+    if [ ! -f "$EXCLUDEFILE" ]; then
+        touch $EXCLUDEFILE
+        if [ "$quiet" != true ]; then
+            echo "Created empty excluded networks file: $EXCLUDEFILE"
+        fi
+    fi
     if [ ! -f "$TRUSTFILE" ]; then
         if [ "$quiet" != true ]; then
-            echo "Could not locate trusted network file: $TRUSTFILE"
+            echo "Could not locate trusted networks file: $TRUSTFILE"
         fi
         exit 1
     fi
@@ -50,9 +58,12 @@ no_network() {
     exit 4
 }
 
-while getopts ":f:qh" opt; do
+while getopts ":e:t:qh" opt; do
     case $opt in
-        f)
+        e)
+            EXCLUDEFILE=$OPTARG
+            ;;
+        t)
             TRUSTFILE=$OPTARG
             ;;
         q)
@@ -70,26 +81,31 @@ while getopts ":f:qh" opt; do
     esac
 done
 
-# Check if the trusted network file exists.
+# Check if the excluded and trusted networks files exist.
 file_check
 
 # Get all active connections.
-connections=($(nmcli --terse -f uuid conn show --active))
+connections=($(nmcli --terse -f name,uuid conn show --active))
+
+# Get number of active connections.
+num_connections=$(comm -13 <(sort "$EXCLUDEFILE") <(nmcli --terse -f name conn show --active | sort) | wc -l)
 
 # Get number of trusted connections.
 num_trusted=$(comm -12 <(nmcli --terse -f uuid conn show --active | sort) <(sort "$TRUSTFILE") | wc -l)
 
 # Determine if there are active connections.
-if [ ${#connections[@]} -eq 0 ]; then
+if [ $num_connections -eq 0 ]; then
     no_network
 # Check if any of the active connections are untrusted.
 elif [[ $num_trusted -eq 0 ]]; then
     all_untrusted
 else
-    for uuid in "${connections[@]}"; do
-        if ! grep -q ^"$uuid"$ "$TRUSTFILE"; then
-            num_untrusted=$((${#connections[@]} - num_trusted))
-            untrusted "$num_untrusted of ${#connections[@]}"
+    for connection in "${connections[@]}"; do
+        name=$(echo "$connection" | awk -F ":" '{print $1}')
+        uuid=$(echo "$connection" | awk -F ":" '{print $2}')
+        if ! grep -q ^"$name"$ "$EXCLUDEFILE" && ! grep -q ^"$uuid"$ "$TRUSTFILE"; then
+            num_untrusted=$((num_connections - num_trusted))
+            untrusted "$num_untrusted of $num_connections"
         fi
     done
 fi
