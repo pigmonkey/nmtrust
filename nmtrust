@@ -15,46 +15,40 @@ Options:
     -q      be quiet"
 }
 
+message() {
+    if [ "$quiet" != true ]; then
+        echo $@
+    fi
+}
+
 file_check() {
     if [ ! -f "$EXCLUDEFILE" ]; then
         touch $EXCLUDEFILE
-        if [ "$quiet" != true ]; then
-            echo "Created empty excluded networks file: $EXCLUDEFILE"
-        fi
+        message "Created empty excluded networks file: $EXCLUDEFILE"
     fi
     if [ ! -f "$TRUSTFILE" ]; then
-        if [ "$quiet" != true ]; then
-            echo "Could not locate trusted networks file: $TRUSTFILE"
-        fi
+        message "Could not locate trusted networks file: $TRUSTFILE"
         exit 1
     fi
 }
 
 trusted() {
-    if [ "$quiet" != true ]; then
-        echo "All connections are trusted"
-    fi
+    message "All connections are trusted"
     exit 0
 }
 
 all_untrusted() {
-    if [ "$quiet" != true ]; then
-        echo "All connections are untrusted"
-    fi
+    message "All connections are untrusted"
     exit 2
 }
 
 untrusted() {
-    if [ "$quiet" != true ]; then
-        echo "${1-One or more} connections are untrusted"
-    fi
+    message "${1-One or more} connections are untrusted"
     exit 3
 }
 
 no_network() {
-    if [ "$quiet" != true ]; then
-        echo "There are no active connections"
-    fi
+    message "There are no active connections"
     exit 4
 }
 
