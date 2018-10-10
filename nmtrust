@@ -23,8 +23,12 @@ message() {
 
 file_check() {
     if [ ! -f "$EXCLUDEFILE" ]; then
-        touch $EXCLUDEFILE
-        message "Created empty excluded networks file: $EXCLUDEFILE"
+        if touch $EXCLUDEFILE; then
+            message "Created empty excluded networks file: $EXCLUDEFILE"
+        else
+            message "Failed to create excluded networks file: $EXCLUDEFILE"
+            exit 1
+        fi
     fi
     if [ ! -f "$TRUSTFILE" ]; then
         message "Could not locate trusted networks file: $TRUSTFILE"
