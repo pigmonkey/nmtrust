@@ -16,13 +16,13 @@ there is no established network connection.
 NetworkManager assigns a UUID to each network profile. These can be seen by
 running `nmcli conn`. The UUIDs of the trusted networks should be placed in a
 file. By default `nmtrust` will look for this file at
-`/usr/local/etc/trusted_networks`, however an alternative location may be
+`/etc/nmtrust/trusted_networks`, however an alternative location may be
 provided using the `-t` option.
 
 If all of the current network connections are trusted, the trusted network file
 can be initiated with these values.
 
-    # nmcli --terse -f uuid conn show --active > /usr/local/etc/trusted_networks
+    # nmcli --terse -f uuid conn show --active > /etc/nmtrust/trusted_networks
 
 `nmtrust` will ask NetworkManager for a list of all active connections. It will
 then compare the UUIDs of the active connections against the trusted network
@@ -47,8 +47,8 @@ disconnect all other connections, `nmtrust` still thinks there are active connec
 despite that you are offline.
 
 The name of the network(s) that need to be excluded should be placed in
-`/usr/local/etc/excluded_networks`, however an alternative location may be provided
-using the `-e` option.
+`/etc/nmtrust/excluded_networks`, however an alternative location may be
+provided using the `-e` option.
 
 ### Usage
 
@@ -89,8 +89,8 @@ present, `ttoggle` is provided for use on systems with
 The idea here is that the user has a number of systemd units that they only
 want to start when connected to a trusted network. The name of the trusted
 units should be placed in a file, one per line. By default `ttoggle` will look
-for this file at `/usr/local/etc/trusted_units`, however an alternative
-location may be provided using the `-f` option.
+for this file at `/etc/nmtrust/trusted_units`, however an alternative location
+may be provided using the `-f` option.
 
 When `ttoggle` is executed, it calls `nmtrust` to determine the state of the
 network connections. If `nmtrust` reports that all the current connections are
@@ -107,7 +107,7 @@ periodically send and receive mail, and a service that provides an IRC instant
 messaging gateway. These may both potentially leak personal information over
 the network, so they should not be started on untrusted connections.
 
-    # echo 'mailsync.timer\nircgateway.service' > /usr/local/etc/trusted_units
+    # echo 'mailsync.timer\nircgateway.service' > /etc/nmtrust/trusted_units
 
 Now when `ttoggle` is called it will start or stop these trusted units as
 appropriate.
@@ -148,7 +148,7 @@ information (such as the location of networked remotes) on untrusted networks.
 These units can be allowed to run offline by adding `,allow_offline` to the
 unit entry in the trusted unit file.
 
-    # echo 'git-annex@user.service,allow_offline' >> /usr/local/etc/trusted_units'
+    # echo 'git-annex@user.service,allow_offline' >> /etc/nmtrust/trusted_units'
 
 When `ttoggle` is called it will now perform the following:
 
@@ -164,7 +164,7 @@ User units may be specified by adding `,user:username` to the unit entry in the
 trusted unit file. For example, if the user `pigmonkey` has a unit
 `ssh-tunnel.service` that should only be started on trusted networks:
 
-    # echo 'ssh-tunnel.service,user:pigmonkey' >> /usr/local/etc/trusted_units
+    # echo 'ssh-tunnel.service,user:pigmonkey' >> /etc/nmtrust/trusted_units
 
 When starting, stopping, or checking the status of these units `ttoggle` will
 check if the calling user is the same as the user specified for the unit. If

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-UNITFILE="/usr/local/etc/trusted_units"
+UNITFILE="/etc/nmtrust/trusted_units"
 
 ###############################################################################
 

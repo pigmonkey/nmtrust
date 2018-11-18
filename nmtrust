@@ -1,7 +1,7 @@
 #!/bin/bash
 
-EXCLUDEFILE="/usr/local/etc/excluded_networks"
-TRUSTFILE="/usr/local/etc/trusted_networks"
+EXCLUDEFILE="/etc/nmtrust/excluded_networks"
+TRUSTFILE="/etc/nmtrust/trusted_networks"
 
 ###############################################################################
 
