@@ -22,6 +22,15 @@ message() {
 }
 
 file_check() {
+    excludefile_dir=$(dirname "$EXCLUDEFILE")
+    if [ ! -d "$excludefile_dir" ]; then
+        if mkdir -p "$excludefile_dir"; then
+            message "Created configuration directory: $excludefile_dir"
+        else
+            message "Failed to create configuration directory: $excludefile_dir"
+            exit 1
+        fi
+    fi
     if [ ! -f "$EXCLUDEFILE" ]; then
         if touch $EXCLUDEFILE; then
             message "Created empty excluded networks file: $EXCLUDEFILE"
