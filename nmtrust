@@ -92,7 +92,7 @@ done
 file_check
 
 # Get all active connections.
-connections=($(nmcli --terse -f name,uuid conn show --active))
+mapfile -t connections < <(nmcli --terse -f name,uuid conn show --active)
 
 # Get number of active connections.
 num_connections=$(comm -13 <(sort "$EXCLUDEFILE") <(nmcli --terse -f name conn show --active | sort) | wc -l)

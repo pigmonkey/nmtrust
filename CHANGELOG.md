@@ -13,6 +13,10 @@
 # mv /usr/local/etc/trusted_networks /etc/nmtrust/
 ```
 
+### Fixed
+
+- Properly process network names that contain whitespace
+
 ### Added
 
 - Exclude networks by name, e.g. docker networks
