@@ -1,6 +1,13 @@
 # Change Log
 
 
+## [ 1.1.1 ] - 2020-10-01
+
+### Changed
+
+- Catch undefined options
+- Ignore lines beginning with `#` in trusted units file
+
 ## [ 1.1.0 ] - 2018-11-24
 
 ### Changed
