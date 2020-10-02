@@ -39,8 +39,10 @@ extract_user() {
 }
 
 get_trusted_units() {
-    TRUSTED_UNITS=$(grep -v '^#\|,.*user:' "$UNITFILE" | cut -d ',' -f1)
-    OFFLINE_UNITS=$(grep ',.*allow_offline' "$UNITFILE" | grep -v ',.*user:' | cut -d ',' -f1)
+    TRUSTED_SYSTEM_UNITS=$(grep -v '^#\|,.*user:' "$UNITFILE" | cut -d ',' -f1)
+    OFFLINE_SYSTEM_UNITS=$(grep -v '^#\|,.*user:' "$UNITFILE" | grep ',.*allow_offline' | cut -d ',' -f1)
+    TRUSTED_USER_UNITS=$(grep -v '^#' "$UNITFILE" | grep ',.*user:')
+    OFFLINE_USER_UNITS=$(grep -v '^#' "$UNITFILE" | grep ',.*user:'  | grep ',.*allow_offline')
 }
 
 user_toggle() {
@@ -62,11 +64,11 @@ start() {
     if [ "$quiet" != true ]; then
         echo "Starting trusted system units"
     fi
-    systemctl start $TRUSTED_UNITS
+    systemctl start $TRUSTED_SYSTEM_UNITS
     if [ "$quiet" != true ]; then
         echo "Starting trusted user units"
     fi
-    grep ',.*user:' "$UNITFILE" | while read -r line; do
+    echo "$TRUSTED_USER_UNITS" | while read -r line; do
         user_toggle "start" "$line"
     done
 }
@@ -75,11 +77,11 @@ stop() {
     if [ "$quiet" != true ]; then
         echo "Stopping trusted system units"
     fi
-    systemctl stop $TRUSTED_UNITS
+    systemctl stop $TRUSTED_SYSTEM_UNITS
     if [ "$quiet" != true ]; then
         echo "Stopping trusted user units"
     fi
-    grep ',.*user:' "$UNITFILE" | while read -r line; do
+    echo "$TRUSTED_USER_UNITS" | while read -r line; do
         user_toggle "stop" "$line"
     done
 }
@@ -89,18 +91,18 @@ start_offline() {
     if [ "$quiet" != true ]; then
         echo "Starting trusted system offline units"
     fi
-    systemctl start $OFFLINE_UNITS
+    systemctl start $OFFLINE_SYSTEM_UNITS
     if [ "$quiet" != true ]; then
         echo "Starting trusted user offline units"
     fi
-    grep ',.*allow_offline' "$UNITFILE" | grep ',.*user:' | while read -r line; do
+    echo "$OFFLINE_USER_UNITS" | while read -r line; do
         user_toggle "start" "$line"
     done
 }
 
 status() {
-    systemctl status $TRUSTED_UNITS | grep '^\s*Active\|●'
-    grep ',.*user:' "$UNITFILE" | while read -r line; do
+    systemctl status $TRUSTED_SYSTEM_UNITS | grep '^\s*Active\|●'
+    echo "$TRUSTED_USER_UNITS" | while read -r line; do
         user_toggle "status" "$line"
     done
 }
