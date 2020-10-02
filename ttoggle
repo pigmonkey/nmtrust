@@ -39,7 +39,7 @@ extract_user() {
 }
 
 get_trusted_units() {
-    TRUSTED_UNITS=$(grep -v ',.*user:' "$UNITFILE" | cut -d ',' -f1)
+    TRUSTED_UNITS=$(grep -v '^#\|,.*user:' "$UNITFILE" | cut -d ',' -f1)
     OFFLINE_UNITS=$(grep ',.*allow_offline' "$UNITFILE" | grep -v ',.*user:' | cut -d ',' -f1)
 }
 
