@@ -50,6 +50,10 @@ The name of the network(s) that need to be excluded should be placed in
 `/etc/nmtrust/excluded_networks`, however an alternative location may be
 provided using the `-e` option.
 
+You can place the exact names in the file or you can use wildcards to exclude multiple
+networks. For example, `virbr0`, `virbr1`, etc. pp. or just `virbr?`. You can also
+specify a range: `virbr[0,1]`.
+
 ### Usage
 
 A unique exit code is returned for each of the four possible states.
