@@ -1,6 +1,6 @@
 # nmtrust
 
-This project provides a simple framework for determing the trusted state of the
+This project provides a simple framework for determining the trusted state of the
 current network connections, and taking action based on the result. It is
 intended to be used to activate certain services on trusted networks, and
 disable them when when there is a connection to an untrusted network or when
