@@ -45,6 +45,19 @@ file_check() {
     fi
 }
 
+check_connection() {
+    local name=$1
+    local connection_excluded=false
+    local excludes=($(grep -v '^#' < $EXCLUDEFILE))
+    for exclude in "${excludes[@]}"; do
+        if [[ "$name" == $exclude ]]; then
+            connection_excluded=true
+            break
+        fi
+    done
+    echo $connection_excluded
+}
+
 trusted() {
     message "All connections are trusted"
     exit 0
@@ -95,7 +108,13 @@ file_check
 mapfile -t connections < <(nmcli --terse -f name,uuid conn show --active)
 
 # Get number of active connections.
-num_connections=$(comm -13 <(sort "$EXCLUDEFILE") <(nmcli --terse -f name conn show --active | sort) | wc -l)
+num_connections=0
+for connection in "${connections[@]}"; do
+    name=$(echo "$connection" | awk -F ":" '{print $1}')
+    if [[ $(check_connection $name) = false ]]; then
+        ((num_connections++))
+    fi
+done
 
 # Get number of trusted connections.
 num_trusted=$(comm -12 <(nmcli --terse -f uuid conn show --active | sort) <(sort "$TRUSTFILE") | wc -l)
@@ -110,7 +129,7 @@ else
     for connection in "${connections[@]}"; do
         name=$(echo "$connection" | awk -F ":" '{print $1}')
         uuid=$(echo "$connection" | awk -F ":" '{print $2}')
-        if ! grep -q ^"$name"$ "$EXCLUDEFILE" && ! grep -q ^"$uuid"$ "$TRUSTFILE"; then
+        if [[ $(check_connection $name) = false ]] && ! grep -q ^"$uuid"$ "$TRUSTFILE"; then
             num_untrusted=$((num_connections - num_trusted))
             untrusted "$num_untrusted of $num_connections"
         fi

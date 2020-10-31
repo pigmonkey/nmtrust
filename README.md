@@ -1,6 +1,6 @@
 # nmtrust
 
-This project provides a simple framework for determing the trusted state of the
+This project provides a simple framework for determining the trusted state of the
 current network connections, and taking action based on the result. It is
 intended to be used to activate certain services on trusted networks, and
 disable them when when there is a connection to an untrusted network or when
@@ -49,6 +49,10 @@ despite that you are offline.
 The name of the network(s) that need to be excluded should be placed in
 `/etc/nmtrust/excluded_networks`, however an alternative location may be
 provided using the `-e` option.
+
+You can place the exact names in the file or you can use wildcards to exclude multiple
+networks. For example, `virbr0`, `virbr1`, etc. pp. or just `virbr?`. You can also
+specify a range: `virbr[0,1]`.
 
 ### Usage
 
