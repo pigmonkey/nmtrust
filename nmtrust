@@ -17,7 +17,7 @@ Options:
 
 message() {
     if [ "$quiet" != true ]; then
-        echo $@
+        echo "$@"
     fi
 }
 
