@@ -48,7 +48,7 @@ file_check() {
 check_connection() {
     local name=$1
     local connection_excluded=false
-    local excludes=($(grep -v '^#' < $EXCLUDEFILE))
+    mapfile -t excludes < <(grep -v '^#' < $EXCLUDEFILE)
     for exclude in "${excludes[@]}"; do
         if [[ "$name" == $exclude ]]; then
             connection_excluded=true
