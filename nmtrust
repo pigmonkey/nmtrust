@@ -89,14 +89,14 @@ while getopts ":e:t:qh" opt; do
         q)
             quiet=true
             ;;
-        h)
-            usage
-            exit
-            ;;
         :)
             echo "Option -$OPTARG requires an argument."
             usage
             exit 1
+            ;;
+        h | *)
+            usage
+            exit
             ;;
     esac
 done
