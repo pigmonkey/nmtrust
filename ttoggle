@@ -61,43 +61,55 @@ user_toggle() {
 }
 
 start() {
-    if [ "$quiet" != true ]; then
-        echo "Starting trusted system units"
+    if [ -n "$TRUSTED_SYSTEM_UNITS" ]; then
+        if [ "$quiet" != true ]; then
+            echo "Starting trusted system units"
+        fi
+        systemctl start $TRUSTED_SYSTEM_UNITS
     fi
-    systemctl start $TRUSTED_SYSTEM_UNITS
-    if [ "$quiet" != true ]; then
-        echo "Starting trusted user units"
+    if [ -n "$TRUSTED_USER_UNITS" ]; then
+        if [ "$quiet" != true ]; then
+            echo "Starting trusted user units"
+        fi
+        echo "$TRUSTED_USER_UNITS" | while read -r line; do
+            user_toggle "start" "$line"
+        done
     fi
-    echo "$TRUSTED_USER_UNITS" | while read -r line; do
-        user_toggle "start" "$line"
-    done
 }
 
 stop() {
-    if [ "$quiet" != true ]; then
-        echo "Stopping trusted system units"
+    if [ -n "$TRUSTED_SYSTEM_UNITS" ]; then
+        if [ "$quiet" != true ]; then
+            echo "Stopping trusted system units"
+        fi
+        systemctl stop $TRUSTED_SYSTEM_UNITS
     fi
-    systemctl stop $TRUSTED_SYSTEM_UNITS
-    if [ "$quiet" != true ]; then
-        echo "Stopping trusted user units"
+    if [ -n "$TRUSTED_USER_UNITS" ]; then
+        if [ "$quiet" != true ]; then
+            echo "Stopping trusted user units"
+        fi
+        echo "$TRUSTED_USER_UNITS" | while read -r line; do
+            user_toggle "stop" "$line"
+        done
     fi
-    echo "$TRUSTED_USER_UNITS" | while read -r line; do
-        user_toggle "stop" "$line"
-    done
 }
 
 start_offline() {
     stop
-    if [ "$quiet" != true ]; then
-        echo "Starting trusted system offline units"
+    if [ -n "$OFFLINE_SYSTEM_UNITS" ]; then
+        if [ "$quiet" != true ]; then
+            echo "Starting trusted system offline units"
+        fi
+        systemctl start $OFFLINE_SYSTEM_UNITS
     fi
-    systemctl start $OFFLINE_SYSTEM_UNITS
-    if [ "$quiet" != true ]; then
-        echo "Starting trusted user offline units"
+    if [ -n "$OFFLINE_USER_UNITS" ]; then
+        if [ "$quiet" != true ]; then
+            echo "Starting trusted user offline units"
+        fi
+        echo "$OFFLINE_USER_UNITS" | while read -r line; do
+            user_toggle "start" "$line"
+        done
     fi
-    echo "$OFFLINE_USER_UNITS" | while read -r line; do
-        user_toggle "start" "$line"
-    done
 }
 
 status() {
