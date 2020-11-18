@@ -1,6 +1,13 @@
 # Change Log
 
 
+## [ 1.1.2 ] - 2020-11-18
+
+### Fixed
+
+- Do not attempt to toggle undefined units
+
+
 ## [ 1.1.1 ] - 2020-10-01
 
 ### Changed
