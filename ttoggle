@@ -49,7 +49,7 @@ user_toggle() {
     unit_user=$(extract_user "$line")
     unit=$(echo "$line" | cut -d ',' -f1)
     if [ "$1" = "status" ]; then
-        command="systemctl $1 --user $unit | grep '^\s*Active\|●'"
+        command="systemctl $1 --user $unit | sed '1p;/^\s*Active:/!d'"
     else
         command="systemctl $1 --user $unit"
     fi
@@ -113,7 +113,10 @@ start_offline() {
 }
 
 status() {
-    systemctl status $TRUSTED_SYSTEM_UNITS | grep '^\s*Active\|●'
+    for unit in $TRUSTED_SYSTEM_UNITS
+    do
+        systemctl status $unit | sed '1p;/^\s*Active:/!d'
+    done
     echo "$TRUSTED_USER_UNITS" | while read -r line; do
         user_toggle "status" "$line"
     done
