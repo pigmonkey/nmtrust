@@ -12,7 +12,8 @@ Determine if the current NetworkManager connections are trusted.
 Options:
     -e      specify an alternative location for the excluded networks file
     -t      specify an alternative location for the trusted networks file
-    -q      be quiet"
+    -q      be quiet
+    -v      be verbose"
 }
 
 message() {
@@ -58,18 +59,50 @@ check_connection() {
     echo $connection_excluded
 }
 
+list_connections() {
+    mapfile -t nmcli < <(nmcli conn show --active)
+
+    for (( i=0; i<${#nmcli[@]}; i++ )); do
+    if [ "$i" -eq 0 ]; then
+        echo "${nmcli[$i]}STATUS"
+    else
+        name=$(echo "${connections[$i-1]}" | awk -F ":" '{print $1}')
+        uuid=$(echo "${connections[$i-1]}" | awk -F ":" '{print $2}')
+        if grep -q "$uuid" "$TRUSTFILE"; then
+        echo "${nmcli[$i]}trusted"
+        elif [[ $(check_connection "$name") = true ]]; then
+        echo "${nmcli[$i]}excluded"
+        else
+        echo "${nmcli[$i]}untrusted"
+        fi
+    fi
+    done
+}
+
 trusted() {
     message "All connections are trusted"
+    if [ "$verbose" == true ]; then
+        echo
+        list_connections
+    fi
     exit 0
 }
 
 all_untrusted() {
     message "All connections are untrusted"
+    if [ "$verbose" == true ]; then
+        echo
+        list_connections
+    fi
     exit 2
 }
 
 untrusted() {
     message "${1-One or more} connections are untrusted"
+    if [ "$verbose" == true ]; then
+        echo
+        list_connections
+    fi
     exit 3
 }
 
@@ -78,7 +111,7 @@ no_network() {
     exit 4
 }
 
-while getopts ":e:t:qh" opt; do
+while getopts ":e:t:q:vh" opt; do
     case $opt in
         e)
             EXCLUDEFILE=$OPTARG
@@ -88,6 +121,9 @@ while getopts ":e:t:qh" opt; do
             ;;
         q)
             quiet=true
+            ;;
+        v)
+            verbose=true
             ;;
         :)
             echo "Option -$OPTARG requires an argument."
