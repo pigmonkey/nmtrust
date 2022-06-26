@@ -163,7 +163,7 @@ mapfile -t connections < <(nmcli --terse -f name,uuid conn show --active)
 num_connections=0
 for connection in "${connections[@]}"; do
     name=$(echo "$connection" | awk -F ":" '{print $1}')
-    if [[ $(check_connection $name) = false ]]; then
+    if [[ $(check_connection "$name") = false ]]; then
         ((num_connections++))
     fi
 done
@@ -172,16 +172,16 @@ done
 num_trusted=$(comm -12 <(nmcli --terse -f uuid conn show --active | sort) <(sort "$TRUSTFILE") | wc -l)
 
 # Determine if there are active connections.
-if [ $num_connections -eq 0 ]; then
+if [ "$num_connections" -eq 0 ]; then
     no_network
 # Check if any of the active connections are untrusted.
-elif [[ $num_trusted -eq 0 ]]; then
+elif [[ "$num_trusted" -eq 0 ]]; then
     all_untrusted
 else
     for connection in "${connections[@]}"; do
         name=$(echo "$connection" | awk -F ":" '{print $1}')
         uuid=$(echo "$connection" | awk -F ":" '{print $2}')
-        if [[ $(check_connection $name) = false ]] && ! grep -q ^"$uuid"$ "$TRUSTFILE"; then
+        if [[ $(check_connection "$name") = false ]] && ! grep -q ^"$uuid"$ "$TRUSTFILE"; then
             num_untrusted=$((num_connections - num_trusted))
             untrusted "$num_untrusted of $num_connections"
         fi
