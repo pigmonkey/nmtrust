@@ -113,10 +113,12 @@ start_offline() {
 }
 
 status() {
+    echo "Systemd system units:"
     for unit in $TRUSTED_SYSTEM_UNITS
     do
         SYSTEMD_COLORS=1 systemctl status $unit | sed '1p;/^\s*Active:/!d'
     done
+    echo "Systemd user units:"
     echo "$TRUSTED_USER_UNITS" | while read -r line; do
         user_toggle "status" "$line"
     done
