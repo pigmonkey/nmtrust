@@ -127,7 +127,7 @@ no_network() {
     exit 4
 }
 
-while getopts ":e:t:q:vh" opt; do
+while getopts ":e:t:qvh" opt; do
     case $opt in
         e)
             EXCLUDEFILE=$OPTARG
