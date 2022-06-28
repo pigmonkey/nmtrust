@@ -67,6 +67,7 @@ check_connection() {
     local connection_excluded=false
     mapfile -t excludes < <(grep -v '^#' < $EXCLUDEFILE)
     for exclude in "${excludes[@]}"; do
+        # NOTE: Cannot quote right-hand site of == because glob matching is needed [shellcheck(SC2053)]
         if [[ "$name" == $exclude ]]; then
             connection_excluded=true
             break
