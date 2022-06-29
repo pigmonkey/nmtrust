@@ -5,6 +5,22 @@ TRUSTFILE="/etc/nmtrust/trusted_networks"
 
 ###############################################################################
 
+# Use colors, but only if connected to a terminal, and that terminal supports them.
+if which tput >/dev/null 2>&1; then
+  ncolors=$(tput colors)
+fi
+if [ -t 1 ] && [ -n "$ncolors" ] && [ "$ncolors" -ge 8 ]; then
+  RED="$(tput setaf 1)"
+  GREEN="$(tput setaf 2)"
+  YELLOW="$(tput setaf 3)"
+  NORMAL="$(tput sgr0)"
+else
+  RED=""
+  GREEN=""
+  YELLOW=""
+  NORMAL=""
+fi
+
 usage() {
     echo "Usage: nmtrust [OPTION...]
 Determine if the current NetworkManager connections are trusted.
@@ -12,7 +28,8 @@ Determine if the current NetworkManager connections are trusted.
 Options:
     -e      specify an alternative location for the excluded networks file
     -t      specify an alternative location for the trusted networks file
-    -q      be quiet"
+    -q      be quiet
+    -v      be verbose"
 }
 
 message() {
@@ -50,6 +67,7 @@ check_connection() {
     local connection_excluded=false
     mapfile -t excludes < <(grep -v '^#' < $EXCLUDEFILE)
     for exclude in "${excludes[@]}"; do
+        # NOTE: Cannot quote right-hand site of == because glob matching is needed [shellcheck(SC2053)]
         if [[ "$name" == $exclude ]]; then
             connection_excluded=true
             break
@@ -58,27 +76,59 @@ check_connection() {
     echo $connection_excluded
 }
 
+list_connections() {
+    mapfile -t nmcli < <(nmcli conn show --active)
+
+    for (( i=0; i<${#nmcli[@]}; i++ )); do
+    if [ "$i" -eq 0 ]; then
+        echo "${nmcli[$i]}STATUS"
+    else
+        name=$(echo "${connections[$i-1]}" | awk -F ":" '{print $1}')
+        uuid=$(echo "${connections[$i-1]}" | awk -F ":" '{print $2}')
+        if grep -q "$uuid" "$TRUSTFILE"; then
+        echo "${GREEN}${nmcli[$i]}trusted${NORMAL}"
+        elif [[ $(check_connection "$name") = true ]]; then
+        echo "${GREEN}${nmcli[$i]}excluded${NORMAL}"
+        else
+        echo "${RED}${nmcli[$i]}untrusted${NORMAL}"
+        fi
+    fi
+    done
+}
+
 trusted() {
-    message "All connections are trusted"
+    message "${GREEN}All connections are trusted${NORMAL}"
+    if [ "$verbose" == true ]; then
+        echo
+        list_connections
+    fi
     exit 0
 }
 
 all_untrusted() {
-    message "All connections are untrusted"
+    message "${RED}All connections are untrusted${NORMAL}"
+    if [ "$verbose" == true ]; then
+        echo
+        list_connections
+    fi
     exit 2
 }
 
 untrusted() {
-    message "${1-One or more} connections are untrusted"
+    message "${RED}${1-One or more} connections are untrusted${NORMAL}"
+    if [ "$verbose" == true ]; then
+        echo
+        list_connections
+    fi
     exit 3
 }
 
 no_network() {
-    message "There are no active connections"
+    message "${YELLOW}There are no active connections${NORMAL}"
     exit 4
 }
 
-while getopts ":e:t:qh" opt; do
+while getopts ":e:t:qvh" opt; do
     case $opt in
         e)
             EXCLUDEFILE=$OPTARG
@@ -88,6 +138,9 @@ while getopts ":e:t:qh" opt; do
             ;;
         q)
             quiet=true
+            ;;
+        v)
+            verbose=true
             ;;
         :)
             echo "Option -$OPTARG requires an argument."
@@ -111,7 +164,7 @@ mapfile -t connections < <(nmcli --terse -f name,uuid conn show --active)
 num_connections=0
 for connection in "${connections[@]}"; do
     name=$(echo "$connection" | awk -F ":" '{print $1}')
-    if [[ $(check_connection $name) = false ]]; then
+    if [[ $(check_connection "$name") = false ]]; then
         ((num_connections++))
     fi
 done
@@ -120,16 +173,16 @@ done
 num_trusted=$(comm -12 <(nmcli --terse -f uuid conn show --active | sort) <(sort "$TRUSTFILE") | wc -l)
 
 # Determine if there are active connections.
-if [ $num_connections -eq 0 ]; then
+if [ "$num_connections" -eq 0 ]; then
     no_network
 # Check if any of the active connections are untrusted.
-elif [[ $num_trusted -eq 0 ]]; then
+elif [[ "$num_trusted" -eq 0 ]]; then
     all_untrusted
 else
     for connection in "${connections[@]}"; do
         name=$(echo "$connection" | awk -F ":" '{print $1}')
         uuid=$(echo "$connection" | awk -F ":" '{print $2}')
-        if [[ $(check_connection $name) = false ]] && ! grep -q ^"$uuid"$ "$TRUSTFILE"; then
+        if [[ $(check_connection "$name") = false ]] && ! grep -q ^"$uuid"$ "$TRUSTFILE"; then
             num_untrusted=$((num_connections - num_trusted))
             untrusted "$num_untrusted of $num_connections"
         fi
