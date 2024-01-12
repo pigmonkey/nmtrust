@@ -158,7 +158,7 @@ done
 file_check
 
 # Get all active connections.
-mapfile -t connections < <(nmcli --terse -f name,uuid,type conn show --active | grep -v loopback)
+mapfile -t connections < <(nmcli --terse -f name,uuid,type conn show --active | grep -E -v '(loopback|wiregard)')
 
 # Get number of active connections.
 num_connections=0
@@ -170,7 +170,7 @@ for connection in "${connections[@]}"; do
 done
 
 # Get number of trusted connections.
-num_trusted=$(comm -12 <(nmcli --terse -f uuid,type conn show --active | grep -v loopback | sed -e 's/:.*$//' | sort) <(sort "$TRUSTFILE") | wc -l)
+num_trusted=$(comm -12 <(nmcli --terse -f uuid,type conn show --active | grep -E -v ('loopback|wireguard') | sed -e 's/:.*$//' | sort) <(sort "$TRUSTFILE") | wc -l)
 
 # Determine if there are active connections.
 if [ "$num_connections" -eq 0 ]; then
