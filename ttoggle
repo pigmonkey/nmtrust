@@ -56,7 +56,7 @@ user_toggle() {
     if [ "$unit_user" = "$USER" ]; then
         eval "$command"
     else
-        sudo -u "$unit_user" bash -c "export XDG_RUNTIME_DIR=/run/user/1000; $command"
+        sudo -u "$unit_user" bash -c "export XDG_RUNTIME_DIR=/run/user/$(id -u "$unit_user"); $command"
     fi
 }
 
