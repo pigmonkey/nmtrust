@@ -60,56 +60,43 @@ user_toggle() {
     fi
 }
 
-start() {
-    if [ -n "$TRUSTED_SYSTEM_UNITS" ]; then
-        if [ "$quiet" != true ]; then
-            echo "Starting trusted system units"
+# Run systemctl $1 against the unit list $2, announcing it with the message $3.
+system_units() {
+    if [ -n "$2" ]; then
+        if [ -n "$3" ] && [ "$quiet" != true ]; then
+            echo "$3"
         fi
-        systemctl start $TRUSTED_SYSTEM_UNITS
+        # $2 is a list split by whitespace.
+        systemctl "$1" $2
     fi
-    if [ -n "$TRUSTED_USER_UNITS" ]; then
-        if [ "$quiet" != true ]; then
-            echo "Starting trusted user units"
+}
+
+# Run systemctl $1 against each user unit in $2, announcing it with the message $3.
+user_units() {
+    if [ -n "$2" ]; then
+        if [ -n "$3" ] && [ "$quiet" != true ]; then
+            echo "$3"
         fi
-        echo "$TRUSTED_USER_UNITS" | while read -r line; do
-            user_toggle "start" "$line"
+        echo "$2" | while read -r line; do
+            user_toggle "$1" "$line"
         done
     fi
 }
 
+start() {
+    system_units start "$TRUSTED_SYSTEM_UNITS" "Starting trusted system units"
+    user_units start "$TRUSTED_USER_UNITS" "Starting trusted user units"
+}
+
 stop() {
-    if [ -n "$TRUSTED_SYSTEM_UNITS" ]; then
-        if [ "$quiet" != true ]; then
-            echo "Stopping trusted system units"
-        fi
-        systemctl stop $TRUSTED_SYSTEM_UNITS
-    fi
-    if [ -n "$TRUSTED_USER_UNITS" ]; then
-        if [ "$quiet" != true ]; then
-            echo "Stopping trusted user units"
-        fi
-        echo "$TRUSTED_USER_UNITS" | while read -r line; do
-            user_toggle "stop" "$line"
-        done
-    fi
+    system_units stop "$TRUSTED_SYSTEM_UNITS" "Stopping trusted system units"
+    user_units stop "$TRUSTED_USER_UNITS" "Stopping trusted user units"
 }
 
 start_offline() {
     stop
-    if [ -n "$OFFLINE_SYSTEM_UNITS" ]; then
-        if [ "$quiet" != true ]; then
-            echo "Starting trusted system offline units"
-        fi
-        systemctl start "$OFFLINE_SYSTEM_UNITS"
-    fi
-    if [ -n "$OFFLINE_USER_UNITS" ]; then
-        if [ "$quiet" != true ]; then
-            echo "Starting trusted user offline units"
-        fi
-        echo "$OFFLINE_USER_UNITS" | while read -r line; do
-            user_toggle "start" "$line"
-        done
-    fi
+    system_units start "$OFFLINE_SYSTEM_UNITS" "Starting trusted system offline units"
+    user_units start "$OFFLINE_USER_UNITS" "Starting trusted user offline units"
 }
 
 status() {
@@ -119,11 +106,7 @@ status() {
         SYSTEMD_COLORS=1 systemctl status "$unit" | sed '1p;/^\s*Active:/!d'
     done
     echo "Systemd user units:"
-    if [ -n "$TRUSTED_USER_UNITS" ]; then
-        echo "$TRUSTED_USER_UNITS" | while read -r line; do
-            user_toggle "status" "$line"
-        done
-    fi
+    user_units status "$TRUSTED_USER_UNITS"
 }
 
 while getopts ":f:sxtqh" opt; do
