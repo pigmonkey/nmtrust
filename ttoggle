@@ -46,8 +46,8 @@ get_trusted_units() {
 }
 
 user_toggle() {
-    unit_user=$(extract_user "$line")
-    unit=$(echo "$line" | cut -d ',' -f1)
+    unit_user=$(extract_user "$2")
+    unit=$(echo "$2" | cut -d ',' -f1)
     if [ "$1" = "status" ]; then
         command="SYSTEMD_COLORS=1 systemctl $1 --user $unit | sed '1p;/^\s*Active:/!d'"
     else
